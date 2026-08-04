@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="D:\ProgrammingProjects\Geoscape\build\CMakeFiles\bf70f777c5d4a904c45eb6d33b3ba14b\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{3B5DF74B-30FD-3D5C-BEB6-D9FFF0371C77}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

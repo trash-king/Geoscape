@@ -1,0 +1,3 @@
+D:/ProgrammingProjects/Geoscape/build/CMakeFiles/geoscape.dir
+D:/ProgrammingProjects/Geoscape/build/CMakeFiles/ALL_BUILD.dir
+D:/ProgrammingProjects/Geoscape/build/CMakeFiles/ZERO_CHECK.dir
