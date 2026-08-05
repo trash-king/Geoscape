@@ -38,6 +38,15 @@ std::vector<Triangle> buildFrame(const IcoSphere & sphere, double yaw, double pi
 
 
 void rasterizerTriangle(frame_buffer& fb, const Triangle& tri);
+{
+        double calculateWeight(vector2 coord1, vector2 coord2, vector2 coord3, vector2 point)
+    {
+        double weight = ((coord2.y - coord3.y) * (point.x - coord3.x) + (coord3.x - coord2.x) * (point.y - coord3.y))/
+
+                        ((coord2.y - coord3.y) * (coord1.x - coord3.x) + (coord3.x - coord2.x) * (coord1.y - coord3.y));
+        return weight;
+    }
+}
 
 void renderGlobe(frame_buffer& fb, const IcoSphere& sphere, double yaw, double pitch,
     const vector3 & sun_direction, double radiusPx, double centerX, double centerY);
