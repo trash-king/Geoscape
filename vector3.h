@@ -6,6 +6,7 @@ struct vector3{
     vector3() : x(0), y(0),z(0) {};
     vector3(double x_, double y_, double z_) : x(x_), y(y_), z(z_) {}
 
+
     vector3 operator+(const vector3& o) const {return vector3(x + o.x, y + o.y, z+ o.z);}
     vector3 operator-(const vector3& o) const {return vector3(x - o.x, y - o.y, z- o.z);}
     vector3 operator*(double w) const {return vector3(x * w, y * w, z * w);}
