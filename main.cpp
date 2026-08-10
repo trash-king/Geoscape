@@ -11,5 +11,10 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    
+    Icosphere icosphere = Icosphere();
+
+    icosphere.debugPrintFaces();
+    icosphere.debugPrintVertices();
+
+    return 0;
 }

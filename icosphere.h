@@ -2,7 +2,8 @@
 #include <map>
 #include <cstdint>
 #include <utility>
-#include "vec3.h"
+#include <iostream>
+#include "vector3.h"
 
 struct face{int a, int b, int c};
 
@@ -12,11 +13,32 @@ class Icosphere{
     explicit Icosphere(int subdivisions)
     {
         constructIcosphere();
+        generateFaces();
         for(int i = 0; i < subdivisions; ++i) subdivide();
     }
 
     std::vector<vector3>    vertices;
     std::vector<face>       faces;
+
+    void debugPrintVertices()
+    {
+        int len = vertices.size();
+        std::cout<< "CURRENTLY " << len << " VERTICES" << std::endl; 
+        for(int i = 0; i < len; i++)
+        {
+            std::cout << vertices[i].x << " " << vertices[i].y << " " << vertices[i].z << " ";
+        }
+    }
+
+    void debugPrintFaces()
+    {
+        int len = faces.size();
+        std::cout<< "CURRENTLY " << len << " FACES" << std::endl; 
+        for(int i = 0; i < len; i++)
+        {
+            std::cout << faces[i].a << " " << faces[i].b << " " << faces[i].c << " ";
+        }       
+    }
 
     protected:
 
@@ -35,7 +57,7 @@ class Icosphere{
         return vertices.size() - 1;
     }
 
-    std::vector<face> generateFaces()
+    void generateFaces()
     {
         double mindist = INT_MAX;
         bool adjacent[12][12] = {};
@@ -67,12 +89,17 @@ class Icosphere{
             {
                 for(int k = j+1; k < 12; k++)
                 {
-                    if(adjacent[i][j] && adjacent[j][k] && adjacent[i][k])
+                    if(adjacent[i][j] && adjacent[j][k] && adjacent[i][k]) this->faces.push_back({i, j, k});
                 }
             }
         }
+        fixWinding(this->faces, this->vertices);
 
-        vector3 a = vertices[i], b = vertices[j], c = vertices[k];
+    }
+
+    void fixWinding(std::vector<Face>& faces, const std::vector<vector3>& verts )
+    {
+        vector3 a = verts[i], b = verts[j], c = verts[k];
         vector3 u = b - a;
         vector3 v = c - a;
 
@@ -80,9 +107,7 @@ class Icosphere{
         vector3 centroid = (a + b + c) * (1.0/3.0);
 
         if(normal.dot(centroid) < 0) std::swap(j,k);
-
     }
-
 
     void subdivide()
     {
@@ -131,7 +156,7 @@ class Icosphere{
         addVertice(vector3(-golden_ratio, 0, -1));
         addVertice(vector3(-golden_ratio, 0, 1));
 
-        faces = generateFaces();
+        generateFaces();
 
     }
 
