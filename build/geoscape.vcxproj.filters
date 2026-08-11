@@ -4,6 +4,12 @@
     <ClCompile Include="D:\ProgrammingProjects\Geoscape\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="D:\ProgrammingProjects\Geoscape\icosphere.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\ProgrammingProjects\Geoscape\globe.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="D:\ProgrammingProjects\Geoscape\CMakeLists.txt" />

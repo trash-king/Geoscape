@@ -2,6 +2,8 @@
 #include <iostream>
 #include "globe.h"
 
+std::string outputPath = "D:/ProgrammingProjects/Geoscape/Globe.obj";
+
 int main(int argc, char* argv[]) {
     int w = 900;
     int h = 900;
@@ -15,6 +17,7 @@ int main(int argc, char* argv[]) {
 
     icosphere.debugPrintFaces();
     icosphere.debugPrintVertices();
+    icosphere.exportAsOBJ(outputPath);
 
     return 0;
 };

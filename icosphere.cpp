@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <iostream>
 #include <climits>
+#include <fstream>
 #include "icosphere.h"
 
 Icosphere::Icosphere(int subdivisions)
@@ -29,6 +30,26 @@ void Icosphere::debugPrintFaces()
     }       
 }
 
+void Icosphere::exportAsOBJ(const std::string& path)
+{
+    std::ofstream objectStream(path);
+
+    if(!objectStream.is_open()){
+        std::cout << path << " failed to open!" << std::endl;
+        return;
+    }
+
+    for (const vector3& v : vertices) {
+        objectStream << "v " << v.x << " " << v.y << " " << v.z << "\n";
+    }
+
+    for (const face& f : faces) {
+        objectStream << "f " << (f.a + 1) << " " << (f.b + 1) << " " << (f.c + 1) << "\n";
+    }
+
+    objectStream.close();
+    
+}
 
 uint64_t Icosphere::edgeKey(int a, int b)
 {

@@ -1,16 +1,22 @@
 #pragma once
 #include <map>
+#include <string>
 #include <vector>
 #include "vector3.h"
 
-struct face{int a, b, c;};
+struct face
+{
+    int a;
+    int b;
+    int c;
+};
 
 class Icosphere{
     public:
     explicit Icosphere(int subdivisions);
     void debugPrintVertices();
     void debugPrintFaces();
-
+    void exportAsOBJ(const std::string& path);
     std::vector<vector3>    vertices;
     std::vector<face>       faces;
 

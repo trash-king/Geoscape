@@ -39,5 +39,5 @@ class Globe
     protected:
 
     private:
-}
+};
 

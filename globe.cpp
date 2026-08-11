@@ -28,11 +28,12 @@ Globe::Globe()
 
 vector3 Globe::rotate(const vector3& vec, double yawRad, double pitchRad)
 {
-    vector3 temp;
-    temp.x = 1;
-    temp.y = 2;
-    temp.z = 3;
-    return temp;
+    int x;
+    int y = (vec.y * cos(pitchRad)) - (vec.z * sin(pitchRad));
+    int z = (vec.y * -sin(pitchRad) - (vec.z * cos(pitchRad)));
+
+
+    
 }
 
 bool isLand(const vector3& unitPos)

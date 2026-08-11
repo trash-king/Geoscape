@@ -6,5 +6,5 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(SDL2 CONFIG REQUIRED)
 
-add_executable(geoscape main.cpp)
+add_executable(geoscape main.cpp icosphere.cpp globe.cpp)
 target_link_libraries(geoscape PRIVATE SDL2::SDL2 SDL2::SDL2main)
