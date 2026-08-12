@@ -9,7 +9,7 @@ struct frame_buffer
     int height;
     std::vector<uint8_t> pixels;
 
-    frame_buffer(int w, int h);
+    frame_buffer(int w, int h) : width(w), height(h), pixels(w * h * 3, 0) {};
     void clear(uint8_t r, uint8_t g, uint8_t b);
     void setPixel(int x,int y, uint8_t r, uint8_t g, uint8_t b);
 };
@@ -32,7 +32,7 @@ class Globe
     Globe();
     vector3 rotate(const vector3& vec, double yawRad, double pitchRad);
     bool isLand(const vector3& unitPos);
-    void rasterizerTriangle(frame_buffer& fb, const Triangle& tri);
+    void rasterizeTriangle(frame_buffer& fb, const Triangle& tri);
     void renderGlobe(frame_buffer& fb, const Icosphere& sphere, double yaw, double pitch, const vector3 & sun_direction, double radiusPx, double centerX, double centerY);
     std::vector<Triangle> buildFrame(const Icosphere & sphere, double yaw, double pitch, const vector3 & sun_direction, double radiusPx, double centerX, double centerY);
     

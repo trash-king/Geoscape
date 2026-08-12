@@ -1,6 +1,15 @@
 #include <SDL2/SDL.h>
 #include <iostream>
+#include <algorithm>
 #include "globe.h"
+
+double g_clamp(double comp, double low, double high)
+{
+    if(comp < low) return low;
+    if(comp > high) return high;
+
+    return comp;
+}
 
 std::string outputPath = "D:/ProgrammingProjects/Geoscape/Globe.obj";
 
@@ -13,11 +22,77 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    Icosphere icosphere = Icosphere(1);
+    SDL_Window* window = SDL_CreateWindow("Geoscape", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, SDL_WINDOW_SHOWN);
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    SDL_Texture* texture = SDL_CreateTexture( renderer, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STREAMING, w, h);
+       
 
+    Icosphere icosphere = Icosphere(1);
+    Globe globe;
+    vector3 sun_direction = vector3(1.0, 0.25, 0.3).normalized();
+
+    double yaw = 0.0, pitch = 0.15;
+    bool dragging = false;
+    int lastMouseX = 0;
+    int lastMouseY = 0;
+
+    frame_buffer fb(w, h);
+    bool running = true;
+    Uint32 lastTick = SDL_GetTicks();
+
+    while(running)
+    {
+        SDL_Event e;
+        while(SDL_PollEvent(&e))
+        {
+            if(e.type == SDL_QUIT) running = false;
+            else if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT)
+            {
+                dragging = true;
+                lastMouseX = e.button.x;
+                lastMouseY = e.button.y;
+            }else if(e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT)
+            {
+                dragging = false;
+            }else if(e.type == SDL_MOUSEMOTION && dragging)
+            {
+                int dx = e.motion.x - lastMouseX;
+                int dy = e.motion.y - lastMouseY;
+
+                yaw += dx * 0.01;
+                pitch += dy * 0.01;
+                pitch = g_clamp(pitch, -1.4, 1.4);
+                lastMouseX = e.motion.x;
+                lastMouseY = e.motion.y;
+            }else if(e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE)
+            {
+                running = false;
+            }
+        }
+
+        Uint32 now = SDL_GetTicks();
+        double dt =(now - lastTick) / 1000.0;
+        lastTick = now;
+        if(!dragging) yaw += dt * 0.15;
+
+        fb.clear(4, 4, 12);
+        globe.renderGlobe(fb,icosphere,yaw,pitch,sun_direction, w * 0.42, w/2, h/2);
+
+        SDL_UpdateTexture(texture, nullptr, fb.pixels.data(), w * 3);
+        SDL_RenderClear(renderer);
+        SDL_RenderCopy(renderer, texture, nullptr, nullptr);
+        SDL_RenderPresent(renderer);  
+
+    }
+
+#if 0 // debug
     icosphere.debugPrintFaces();
     icosphere.debugPrintVertices();
     icosphere.exportAsOBJ(outputPath);
-
+#endif
+    SDL_DestroyTexture(texture);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
     return 0;
 };
