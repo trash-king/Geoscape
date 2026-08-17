@@ -1,17 +1,23 @@
 #pragma once
+#include <SDL2/SDL.h>
 #include <vector>
 #include "vector3.h"
 #include "icosphere.h"
+
+#define WRITE_TO_PIXEL_BUF          1
+#define WRITE_TO_BACKGROUND_BUF     2
 
 struct frame_buffer
 {
     int width;
     int height;
     std::vector<uint8_t> pixels;
+    std::vector<uint8_t> backgroundpixels;
 
-    frame_buffer(int w, int h) : width(w), height(h), pixels(w * h * 3, 0) {};
+    frame_buffer(int w, int h) : width(w), height(h), pixels(w * h * 3, 0), backgroundpixels(w * h * 3, 0) {};
     void clear(uint8_t r, uint8_t g, uint8_t b);
-    void setPixel(int x,int y, uint8_t r, uint8_t g, uint8_t b);
+    void background(SDL_Surface * buf, int w, int h);
+    void setPixel(int destination, int x,int y, uint8_t r, uint8_t g, uint8_t b);
 };
 
 struct vector2

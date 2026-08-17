@@ -4,6 +4,25 @@
 #include <algorithm>
 #include "globe.h"
 
+void frame_buffer::background(SDL_Surface * buf, int w, int h)
+{
+    Uint8* bytes = static_cast<Uint8*>(buf->pixels);
+    for(size_t i = 0; i < (buf->h); i++)
+    {
+        for(size_t j = 0; j < (buf->w); j++)
+        {
+            uint8_t r, g, b;
+            int offset = i * buf->pitch + j * buf->format->BytesPerPixel;
+            Uint8* addr = bytes + offset;
+            Uint32 pixel = *reinterpret_cast<Uint32*>(addr);
+
+            SDL_GetRGB(pixel, buf->format, &r,&g,&b);
+            setPixel(WRITE_TO_BACKGROUND_BUF, j,i, r, g, b);
+        }
+    }
+    SDL_FreeSurface(buf);
+}
+
 void frame_buffer::clear(uint8_t r, uint8_t g, uint8_t b)
 {
     for(size_t i = 0; i < pixels.size(); i+= 3)
@@ -14,15 +33,26 @@ void frame_buffer::clear(uint8_t r, uint8_t g, uint8_t b)
     }
 }
 
-void frame_buffer::setPixel(int x,int y, uint8_t r, uint8_t g, uint8_t b)
+void frame_buffer::setPixel(int destination, int x,int y, uint8_t r, uint8_t g, uint8_t b)
 {
-    if (x < 0 || x >= width || y < 0 || y >= height) return;
-    size_t idx = (static_cast<size_t>(y) * width + x) * 3;
-    pixels[idx] = r; 
-    pixels[idx + 1] = g; 
-    pixels[idx + 2] = b;
-}
+    if(destination == WRITE_TO_PIXEL_BUF)
+    {
+        if (x < 0 || x >= width || y < 0 || y >= height) return;
+        size_t idx = (static_cast<size_t>(y) * width + x) * 3;
+        pixels[idx] = r; 
+        pixels[idx + 1] = g; 
+        pixels[idx + 2] = b;        
+    }
+    else
+    {
+        if (x < 0 || x >= width || y < 0 || y >= height) return;
+        size_t idx = (static_cast<size_t>(y) * width + x) * 3;
+        backgroundpixels[idx] = r; 
+        backgroundpixels[idx + 1] = g; 
+        backgroundpixels[idx + 2] = b;             
+    }
 
+}
 
 Globe::Globe()
 {
@@ -75,7 +105,7 @@ std::vector<Triangle> Globe::buildFrame(const Icosphere & sphere, double yaw, do
         if(normal.z <= 0.0) continue;   //if camera is pointing directly at the origin
 
         double lit  = std::max(0.0, normal.dot(sun_direction));
-        double brightness = 0.12 + 0.88 * lit;
+        double brightness = 0.05 + 0.95 * lit;
 
         vector3 original_center = (a + b + c) * (1.0/3.0);
         bool land = isLand(original_center.normalized());
@@ -127,7 +157,7 @@ void Globe::rasterizeTriangle(frame_buffer& fb, const Triangle& tri)
             double a = ((y2_ - y3_) * (px - x3_) + (x3_ - x2_) * (py - y3_)) / denominator;
             double b = ((y3_ - y1_) * (px - x3_) + (x1_ - x3_) * (py - y3_)) / denominator;
             double c = 1.0 - a - b;
-            if(a >= 0 && b >= 0 && c >= 0) fb.setPixel(x,y, tri.r,tri.g,tri.b);
+            if(a >= 0 && b >= 0 && c >= 0) fb.setPixel(WRITE_TO_PIXEL_BUF, x,y, tri.r,tri.g,tri.b);
         }
     }
 

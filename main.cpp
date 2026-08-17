@@ -12,6 +12,7 @@ double g_clamp(double comp, double low, double high)
 }
 
 std::string outputPath = "D:/ProgrammingProjects/Geoscape/Globe.obj";
+const char * background = "D:/ProgrammingProjects/Geoscape/background.bmp";
 
 int main(int argc, char* argv[]) {
     int w = 900;
@@ -25,11 +26,21 @@ int main(int argc, char* argv[]) {
     SDL_Window* window = SDL_CreateWindow("Geoscape", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, SDL_WINDOW_SHOWN);
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     SDL_Texture* texture = SDL_CreateTexture( renderer, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STREAMING, w, h);
-       
-
-    Icosphere icosphere = Icosphere(1);
+    SDL_Surface* bkg = SDL_LoadBMP(background);   
+    if(bkg == nullptr)
+    {
+        printf("SDL Background Initialization Error: %s\n", SDL_GetError());
+        return 1;
+    }
+    if(bkg->w == w && bkg->h == h)
+    {
+        printf("Background Size Matches\n");
+    }else printf("Size does not match W/H: %d %d \n",bkg->w,bkg->h);
+    
+    Icosphere icosphere = Icosphere(2);
     Globe globe;
     vector3 sun_direction = vector3(1.0, 0.25, 0.3).normalized();
+    
 
     double yaw = 0.0, pitch = 0.15;
     bool dragging = false;
@@ -37,6 +48,7 @@ int main(int argc, char* argv[]) {
     int lastMouseY = 0;
 
     frame_buffer fb(w, h);
+    fb.background(bkg,w,h);
     bool running = true;
     Uint32 lastTick = SDL_GetTicks();
 
@@ -75,7 +87,7 @@ int main(int argc, char* argv[]) {
         lastTick = now;
         if(!dragging) yaw += dt * 0.15;
 
-        fb.clear(4, 4, 12);
+        fb.pixels = fb.backgroundpixels;
         globe.renderGlobe(fb,icosphere,yaw,pitch,sun_direction, w * 0.42, w/2, h/2);
 
         SDL_UpdateTexture(texture, nullptr, fb.pixels.data(), w * 3);
