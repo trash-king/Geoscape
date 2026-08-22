@@ -5,3 +5,6 @@
 
 
 #define CURRENT_VERSION     1.01
+
+
+//cmake --build . --config Debug ; if ($?) { .\Debug\geoscape.exe } run this in the build folder!

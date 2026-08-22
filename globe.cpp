@@ -4,6 +4,14 @@
 #include <algorithm>
 #include "globe.h"
 
+double g_clamp(double comp, double low, double high)
+{
+    if(comp < low) return low;
+    if(comp > high) return high;
+
+    return comp;
+}
+
 void frame_buffer::background(SDL_Surface * buf, int w, int h)
 {
     Uint8* bytes = static_cast<Uint8*>(buf->pixels);
@@ -54,11 +62,6 @@ void frame_buffer::setPixel(int destination, int x,int y, uint8_t r, uint8_t g, 
 
 }
 
-Globe::Globe()
-{
-    std::cout << "Globe constructor called" << std::endl;
-}
-
 vector3 Globe::rotate(const vector3& vec, double yawRad, double pitchRad)
 {
     double cpr = cos(pitchRad);
@@ -76,6 +79,60 @@ vector3 Globe::rotate(const vector3& vec, double yawRad, double pitchRad)
 
     return vector3(x, y2, z2);
 }
+
+/*
+void frame_buffer::setPixel(int destination, int x,int y, uint8_t r, uint8_t g, uint8_t b)
+{
+    if(destination == WRITE_TO_PIXEL_BUF)
+    {
+        if (x < 0 || x >= width || y < 0 || y >= height) return;
+        size_t idx = (static_cast<size_t>(y) * width + x) * 3;
+        pixels[idx] = r; 
+        pixels[idx + 1] = g; 
+        pixels[idx + 2] = b;        
+    }
+*/
+
+void Globe::setTexture(SDL_Surface * buf)
+{
+    
+    texture_width = buf->w;
+    texture_height = buf->h;
+    texture.resize(static_cast<size_t>(buf->w) * buf->h * 3);
+    printf("Resized Texture\n");
+
+    Uint8* bytes = static_cast<Uint8*>(buf->pixels);
+    for(size_t i = 0; i < (buf->h); i++)
+    {
+        for(size_t j = 0; j < (buf->w); j++)
+        {
+            uint8_t r, g, b;
+            int offset = i * buf->pitch + j * buf->format->BytesPerPixel;
+            Uint8* addr = bytes + offset;
+            //Uint32 pixel = *reinterpret_cast<Uint32*>(addr);
+            Uint32 pixel = 0;
+            memcpy(&pixel, addr, buf->format->BytesPerPixel);
+
+            SDL_GetRGB(pixel, buf->format, &r,&g,&b);
+
+            size_t idx = (i * buf->w + j) * 3;
+            texture[idx] = r;
+            texture[idx+1] = g;
+            texture[idx+2] = b;
+        }
+    }
+    printf("Texture mapping complete!");
+    SDL_FreeSurface(buf);
+}
+/*
+the Calculations - 
+
+latitude  = asin(y)              // where on the sphere, vertically
+longitude = atan2(z, x)          // where on the sphere, around the pole axis
+u = (longitude + π) / (2π)       // squash that into 0-1
+v = 1 - (latitude + π/2) / π     // squash that into 0-1
+
+*/
 
 //this is currently standing in for sampling a real equirectangular texture.
 bool Globe::isLand(const vector3& unitPos) {
@@ -115,6 +172,24 @@ std::vector<Triangle> Globe::buildFrame(const Icosphere & sphere, double yaw, do
         uint8_t bb = land ? 55 : 160;
 
         Triangle tri;
+
+        tri.uv[0] = sphere.uv_coords[i.a];
+        tri.uv[1] = sphere.uv_coords[i.b];
+        tri.uv[2] = sphere.uv_coords[i.c];
+
+        tri.brightness = brightness;
+
+        double maxU = std::max({tri.uv[0].x,tri.uv[1].x,tri.uv[2].x});
+        double minU = std::min({tri.uv[0].x,tri.uv[1].x,tri.uv[2].x});
+
+        if (maxU - minU > 0.5) 
+        {
+            for (int k = 0; k < 3; k++) 
+            {
+            if (tri.uv[k].x < 0.5) tri.uv[k].x += 1.0;
+            }
+        }
+
         tri.p[0] = {centerX + ra.x * radiusPx, centerY - ra.y * radiusPx};
         tri.p[1] = {centerX + rb.x * radiusPx, centerY - rb.y * radiusPx};
         tri.p[2] = {centerX + rc.x * radiusPx, centerY - rc.y * radiusPx};
@@ -126,6 +201,11 @@ std::vector<Triangle> Globe::buildFrame(const Icosphere & sphere, double yaw, do
         output.push_back(tri);
     }
     return output;
+    
+}
+
+void Globe::mapTexture(const vector3& unitPos)
+{
     
 }
 
@@ -157,7 +237,28 @@ void Globe::rasterizeTriangle(frame_buffer& fb, const Triangle& tri)
             double a = ((y2_ - y3_) * (px - x3_) + (x3_ - x2_) * (py - y3_)) / denominator;
             double b = ((y3_ - y1_) * (px - x3_) + (x1_ - x3_) * (py - y3_)) / denominator;
             double c = 1.0 - a - b;
-            if(a >= 0 && b >= 0 && c >= 0) fb.setPixel(WRITE_TO_PIXEL_BUF, x,y, tri.r,tri.g,tri.b);
+            if(a >= 0 && b >= 0 && c >= 0)
+            {
+                double pixelU = a * tri.uv[0].x + b * tri.uv[1].x + c * tri.uv[2].x;
+                double pixelV = a * tri.uv[0].y + b * tri.uv[1].y + c * tri.uv[2].y;
+
+                pixelU = pixelU - std::floor(pixelU);
+                pixelV = g_clamp(pixelV, 0.0, 1.0);
+
+                int texelX = static_cast<int>(pixelU * texture_width);
+                int texelY = static_cast<int>(pixelV * texture_height);
+
+                texelX = std::min(texelX,texture_width-1);
+                texelY = std::min(texelY, texture_height-1);
+
+                size_t idx = (static_cast<size_t>(texelY) * texture_width + texelX) * 3;
+                uint8_t tr = static_cast<uint8_t>(texture[idx] * tri.brightness);
+                uint8_t tg = static_cast<uint8_t>(texture[idx + 1] * tri.brightness);
+                uint8_t tb = static_cast<uint8_t>(texture[idx + 2] * tri.brightness);
+
+                fb.setPixel(WRITE_TO_PIXEL_BUF,x,y, tr, tg, tb);
+            }
+            //fb.setPixel(WRITE_TO_PIXEL_BUF, x,y, tri.r,tri.g,tri.b);
         }
     }
 

@@ -2,12 +2,21 @@
 #include <iostream>
 #include <climits>
 #include <fstream>
+#include <cmath>
 #include "icosphere.h"
 
 Icosphere::Icosphere(int subdivisions)
 {
     constructIcosphere();
     for(int i = 0; i < subdivisions; ++i) subdivide();
+    uv_coords.resize(vertices.size());
+    for(int j = 0; j <vertices.size(); ++j)
+    {
+        double latitude = std::asin(vertices[j].y);
+        double longitude = std::atan2(vertices[j].z,vertices[j].x);
+        uv_coords[j].x = (longitude + 3.14) / (2 * 3.14);
+        uv_coords[j].y = 1 - (latitude + 3.14 /  2) / 3.14;
+    }
 }
 
 void Icosphere::debugPrintVertices()
@@ -28,6 +37,22 @@ void Icosphere::debugPrintFaces()
     {
         std::cout << faces[i].a << " " << faces[i].b << " " << faces[i].c << " ";
     }       
+}
+
+void Icosphere::debugPrintUVCoords(const std::string& path)
+{
+    
+    std::ofstream objectStream(path);
+    
+        if(!objectStream.is_open()){
+        std::cout << path << " failed to open!" << std::endl;
+        return;
+    }else std::cout << "OSTREAM SUCCESS" << std::endl;
+
+    for (const vector2& v : uv_coords) {
+        objectStream << v.x << "," << v.y << " "; 
+    }
+    objectStream.close();
 }
 
 void Icosphere::exportAsOBJ(const std::string& path)

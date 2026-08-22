@@ -3,16 +3,10 @@
 #include <algorithm>
 #include "globe.h"
 
-double g_clamp(double comp, double low, double high)
-{
-    if(comp < low) return low;
-    if(comp > high) return high;
-
-    return comp;
-}
-
 std::string outputPath = "D:/ProgrammingProjects/Geoscape/Globe.obj";
+std::string debugpath = "D:/ProgrammingProjects/Geoscape/uvcoordsdebug.txt";
 const char * background = "D:/ProgrammingProjects/Geoscape/background.bmp";
+const char * worldmap = "D:/ProgrammingProjects/Geoscape/worldmap_flipped.bmp";
 
 int main(int argc, char* argv[]) {
     int w = 900;
@@ -37,7 +31,14 @@ int main(int argc, char* argv[]) {
         printf("Background Size Matches\n");
     }else printf("Size does not match W/H: %d %d \n",bkg->w,bkg->h);
     
-    Icosphere icosphere = Icosphere(2);
+    SDL_Surface* world = SDL_LoadBMP(worldmap);
+    if(worldmap == nullptr)
+    {
+        printf("SDL World Map Initialization Error: %s\n", SDL_GetError());
+        return 1;
+    }
+
+    Icosphere icosphere = Icosphere(3);
     Globe globe;
     vector3 sun_direction = vector3(1.0, 0.25, 0.3).normalized();
     
@@ -49,6 +50,7 @@ int main(int argc, char* argv[]) {
 
     frame_buffer fb(w, h);
     fb.background(bkg,w,h);
+    globe.setTexture(world);
     bool running = true;
     Uint32 lastTick = SDL_GetTicks();
 
@@ -96,7 +98,7 @@ int main(int argc, char* argv[]) {
         SDL_RenderPresent(renderer);  
 
     }
-
+    icosphere.debugPrintUVCoords(debugpath);
 #if 0 // debug
     icosphere.debugPrintFaces();
     icosphere.debugPrintVertices();
