@@ -2,11 +2,19 @@
 #include <iostream>
 #include <algorithm>
 #include "globe.h"
+#include "target.h"
 
 std::string outputPath = "D:/ProgrammingProjects/Geoscape/Globe.obj";
 std::string debugpath = "D:/ProgrammingProjects/Geoscape/uvcoordsdebug.txt";
 const char * background = "D:/ProgrammingProjects/Geoscape/background.bmp";
-const char * worldmap = "D:/ProgrammingProjects/Geoscape/worldmap_flipped.bmp";
+
+#if DISPLAY_MODE    == MODE_GEOSCAPE
+    const char * worldmap = "D:/ProgrammingProjects/Geoscape/worldmap_flipped.bmp";
+#elif DISPLAY_MODE  == MODE_EARTH
+    const char * worldmap = "D:/ProgrammingProjects/Geoscape/earth_worldmap_flipped.bmp";
+#elif DISPLAY_MODE  == MODE_DEBUG
+    const char * worldmap = "D:/ProgrammingProjects/Geoscape/worldmap_flipped.bmp";
+#endif
 
 int main(int argc, char* argv[]) {
     int w = 900;
@@ -45,8 +53,12 @@ int main(int argc, char* argv[]) {
 
     double yaw = 0.0, pitch = 0.15;
     bool dragging = false;
+    bool hasMoved = false;
+    int drag       = 3;
     int lastMouseX = 0;
     int lastMouseY = 0;
+    int mouseDownX = 0;
+    int mouseDownY = 0;
 
     frame_buffer fb(w, h);
     fb.background(bkg,w,h);
@@ -63,12 +75,17 @@ int main(int argc, char* argv[]) {
             else if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT)
             {
                 dragging = true;
+                mouseDownX = e.button.x;
+                mouseDownY = e.button.y;
                 lastMouseX = e.button.x;
                 lastMouseY = e.button.y;
-            }else if(e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT)
+                hasMoved = false;
+            }
+            else if(e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT)
             {
                 dragging = false;
-            }else if(e.type == SDL_MOUSEMOTION && dragging)
+            }
+            else if(e.type == SDL_MOUSEMOTION && dragging)
             {
                 int dx = e.motion.x - lastMouseX;
                 int dy = e.motion.y - lastMouseY;
@@ -78,7 +95,28 @@ int main(int argc, char* argv[]) {
                 pitch = g_clamp(pitch, -1.4, 1.4);
                 lastMouseX = e.motion.x;
                 lastMouseY = e.motion.y;
-            }else if(e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE)
+
+                int totalDX = dx - mouseDownX;
+                int totalDY = dy - mouseDownY;
+
+                if(totalDX * totalDX + totalDY * totalDY > drag * drag)
+                {
+                    hasMoved = true;
+                }
+            }
+            else if(e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT)
+            {
+                dragging = false;
+                if(!hasMoved)
+                {
+                    int dx = e.button.x;
+                    int dy = e.button.y;
+                    yaw += dx * 0.01;
+                    pitch += dy * 0.01;
+                    pitch = g_clamp(pitch, -1.4, 1.4);                    
+                }
+            }
+            else if(e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE)
             {
                 running = false;
             }
@@ -98,8 +136,8 @@ int main(int argc, char* argv[]) {
         SDL_RenderPresent(renderer);  
 
     }
+#if 0 // debug    
     icosphere.debugPrintUVCoords(debugpath);
-#if 0 // debug
     icosphere.debugPrintFaces();
     icosphere.debugPrintVertices();
     icosphere.exportAsOBJ(outputPath);

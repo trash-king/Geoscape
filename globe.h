@@ -35,19 +35,19 @@ class Globe
     public:
     int texture_width;
     int texture_height;
+    void commandSetBrightness(double brightness);
     std::vector<uint8_t> texture;
 
-    //Globe(int w,int h) : texture_width(w), texture_height(h), texture(w * h * 3, 0) {};
     vector3 rotate(const vector3& vec, double yawRad, double pitchRad);
     void setTexture(SDL_Surface * buf);
-    void mapTexture(const vector3& unitPos);
     bool isLand(const vector3& unitPos);
     void rasterizeTriangle(frame_buffer& fb, const Triangle& tri);
     void renderGlobe(frame_buffer& fb, const Icosphere& sphere, double yaw, double pitch, const vector3 & sun_direction, double radiusPx, double centerX, double centerY);
     std::vector<Triangle> buildFrame(const Icosphere & sphere, double yaw, double pitch, const vector3 & sun_direction, double radiusPx, double centerX, double centerY);
     
     protected:
-
+    double brightness;
+    void updateBrightness();
     private:
 };
 

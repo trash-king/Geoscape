@@ -143,6 +143,27 @@ bool Globe::isLand(const vector3& unitPos) {
     return n > 0.6;
 }
 
+void Globe::commandSetBrightness(double brightness)
+{
+    double n_brightness;
+
+    printf("Enter New Brightness Value Between 0.0 and 1.0: ");
+    std::cin >> n_brightness;
+    printf("Setting Light Level To %lf.",n_brightness);
+    this->brightness = n_brightness;
+}
+
+void Globe::updateBrightness()
+{
+    /*
+    for(const face &i : sphere.faces)
+    {
+        return;
+    }
+    return;
+    */
+}
+
 std::vector<Triangle> Globe::buildFrame(const Icosphere & sphere, double yaw, double pitch, const vector3 & sun_direction, double radiusPx, double centerX, double centerY)
 {
     std::vector<Triangle> output;
@@ -157,12 +178,13 @@ std::vector<Triangle> Globe::buildFrame(const Icosphere & sphere, double yaw, do
         vector3 rb = rotate(b, yaw, pitch);
         vector3 rc = rotate(c, yaw, pitch);
 
-        vector3 normal = (ra, rb, rc) * (1.0 / 3.0);
-
-        if(normal.z <= 0.0) continue;   //if camera is pointing directly at the origin
+        vector3 uc = (rb - ra);
+        vector3 vc = (rc - ra);
+        vector3 normal = uc.cross(vc);
+        if((normal.z) <= 0.0) continue;
 
         double lit  = std::max(0.0, normal.dot(sun_direction));
-        double brightness = 0.05 + 0.95 * lit;
+        this->brightness = 0.05 + 0.95 * lit;
 
         vector3 original_center = (a + b + c) * (1.0/3.0);
         bool land = isLand(original_center.normalized());
@@ -177,7 +199,7 @@ std::vector<Triangle> Globe::buildFrame(const Icosphere & sphere, double yaw, do
         tri.uv[1] = sphere.uv_coords[i.b];
         tri.uv[2] = sphere.uv_coords[i.c];
 
-        tri.brightness = brightness;
+        tri.brightness = this->brightness;
 
         double maxU = std::max({tri.uv[0].x,tri.uv[1].x,tri.uv[2].x});
         double minU = std::min({tri.uv[0].x,tri.uv[1].x,tri.uv[2].x});
@@ -194,18 +216,13 @@ std::vector<Triangle> Globe::buildFrame(const Icosphere & sphere, double yaw, do
         tri.p[1] = {centerX + rb.x * radiusPx, centerY - rb.y * radiusPx};
         tri.p[2] = {centerX + rc.x * radiusPx, centerY - rc.y * radiusPx};
 
-        tri.r = static_cast<uint8_t>(std::min(255.0, br * brightness));
-        tri.g = static_cast<uint8_t>(std::min(255.0, bg * brightness));
-        tri.b = static_cast<uint8_t>(std::min(255.0, bb * brightness));
+        tri.r = static_cast<uint8_t>(std::min(255.0, br * this->brightness));
+        tri.g = static_cast<uint8_t>(std::min(255.0, bg * this->brightness));
+        tri.b = static_cast<uint8_t>(std::min(255.0, bb * this->brightness));
 
         output.push_back(tri);
     }
     return output;
-    
-}
-
-void Globe::mapTexture(const vector3& unitPos)
-{
     
 }
 
