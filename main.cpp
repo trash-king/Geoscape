@@ -14,11 +14,16 @@ const char * background = "D:/ProgrammingProjects/Geoscape/background.bmp";
     const char * worldmap = "D:/ProgrammingProjects/Geoscape/earth_worldmap_flipped.bmp";
 #elif DISPLAY_MODE  == MODE_DEBUG
     const char * worldmap = "D:/ProgrammingProjects/Geoscape/worldmap_flipped.bmp";
+#elif DISPLAY_MODE == MODE_TERROR
+    const char * worldmap = "D:/ProgrammingProjects/Geoscape/worldmap_flipped.bmp";
 #endif
 
 int main(int argc, char* argv[]) {
     int w = 900;
     int h = 900;
+    Uint32 starttime = SDL_GetTicks();
+    float fps        = 0.0;
+    int framecount   = 0;
     if(SDL_Init(SDL_INIT_VIDEO) < 0)
     {
         printf("SDL Initialization Error: %s\n", SDL_GetError());
@@ -68,6 +73,20 @@ int main(int argc, char* argv[]) {
 
     while(running)
     {
+        framecount++;
+        Uint32 currentTime = SDL_GetTicks();
+        Uint32 elapsedTime = currentTime - starttime;
+
+        if (elapsedTime >= 1000) {
+            fps = framecount / (elapsedTime / 1000.0f);
+            
+            std::string title = "FPS: " + std::to_string(static_cast<int>(fps));
+            SDL_SetWindowTitle(window, title.c_str());
+
+            framecount = 0;
+            starttime = currentTime;
+        }
+
         SDL_Event e;
         while(SDL_PollEvent(&e))
         {
