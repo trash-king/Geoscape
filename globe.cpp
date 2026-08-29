@@ -237,7 +237,7 @@ void Globe::rasterizeTriangle(frame_buffer& fb, const Triangle& tri)
     int x1 = std::min(fb.width-1, static_cast<int>(std::ceil(maxX)));
 
     int y0 = std::max(0, static_cast<int>(std::floor(minY)));
-    int y1 = std::min(fb.width-1, static_cast<int>(std::ceil(maxY)));
+    int y1 = std::min(fb.height-1, static_cast<int>(std::ceil(maxY)));
 
     double x1_ = tri.p[0].x, y1_ = tri.p[0].y;
     double x2_ = tri.p[1].x, y2_ = tri.p[1].y;
